@@ -22,10 +22,10 @@
     position: relative;
 }
 
-    .login-body ::deep.mat-accordion .mat-expansion-panel__header {
-        flex-basis: 80%;
-    }
+.login-body ::deep.mat-accordion .mat-expansion-panel__header {
+    flex-basis: 80%;
+}
 
-    .login-body ::deep.mat-expansion-panel {
-        background-color: #f4f4f4 !important;
-    }
+.login-body ::deep.mat-expansion-panel {
+    background-color: #f4f4f4 !important;
+}

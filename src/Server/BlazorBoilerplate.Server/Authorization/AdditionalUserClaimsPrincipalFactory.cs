@@ -1,11 +1,10 @@
-﻿using BlazorBoilerplate.Infrastructure.AuthorizationDefinitions;
+﻿using System.Security.Claims;
+using System.Threading.Tasks;
+using BlazorBoilerplate.Infrastructure.AuthorizationDefinitions;
 using BlazorBoilerplate.Infrastructure.Storage.DataModels;
 using IdentityModel;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
-using System;
-using System.Security.Claims;
-using System.Threading.Tasks;
 
 //# Links
 //## ASP.NET Core Roles/Policies/Claims
@@ -18,48 +17,38 @@ using System.Threading.Tasks;
 //- (Suppress redirect on API URLs in ASP.NET Core)[https://stackoverflow.com/a/56384729/54159]
 //https://adrientorris.github.io/aspnet-core/identity/extend-user-model.html
 
-namespace BlazorBoilerplate.Server.Authorization
+namespace BlazorBoilerplate.Server.Authorization;
+
+public class AdditionalUserClaimsPrincipalFactory : UserClaimsPrincipalFactory<ApplicationUser, ApplicationRole>
 {
-    public class AdditionalUserClaimsPrincipalFactory : UserClaimsPrincipalFactory<ApplicationUser, ApplicationRole>
+    public AdditionalUserClaimsPrincipalFactory(
+        UserManager<ApplicationUser> userManager,
+        RoleManager<ApplicationRole> roleManager,
+        IOptions<IdentityOptions> optionsAccessor)
+        : base(userManager, roleManager, optionsAccessor)
     {
-        public AdditionalUserClaimsPrincipalFactory(
-            UserManager<ApplicationUser> userManager,
-            RoleManager<ApplicationRole> roleManager,
-            IOptions<IdentityOptions> optionsAccessor)
-            : base(userManager, roleManager, optionsAccessor)
-        {  }
+    }
 
-        public async override Task<ClaimsPrincipal> CreateAsync(ApplicationUser user)
-        {
-            var principal = await base.CreateAsync(user);
-            var identity = (ClaimsIdentity)principal.Identity;
+    public override async Task<ClaimsPrincipal> CreateAsync(ApplicationUser user)
+    {
+        var principal = await base.CreateAsync(user);
+        var identity = (ClaimsIdentity)principal.Identity;
 
-            if (!string.IsNullOrWhiteSpace(user.FirstName))
-            {
-                identity.AddClaims(new[] { new Claim(ClaimTypes.GivenName, user.FirstName) });
-            }
+        if (!string.IsNullOrWhiteSpace(user.FirstName))
+            identity.AddClaims(new[] { new Claim(ClaimTypes.GivenName, user.FirstName) });
 
-            if (!string.IsNullOrWhiteSpace(user.LastName))
-            {
-                identity.AddClaims(new[] { new Claim(ClaimTypes.Surname, user.LastName) });
-            }
+        if (!string.IsNullOrWhiteSpace(user.LastName))
+            identity.AddClaims(new[] { new Claim(ClaimTypes.Surname, user.LastName) });
 
-            if (!string.IsNullOrWhiteSpace(user.Email))
-            {
-                identity.AddClaims(new[] { new Claim(ClaimTypes.Email, user.Email) });
-            }
+        if (!string.IsNullOrWhiteSpace(user.Email))
+            identity.AddClaims(new[] { new Claim(ClaimTypes.Email, user.Email) });
 
-            //https://docs.microsoft.com/it-it/aspnet/core/security/authentication/mfa
-            if (user.TwoFactorEnabled)
-            {
-                identity.AddClaim(new Claim(JwtClaimTypes.AuthenticationMethod, ClaimValues.AuthenticationMethodMFA));
-            }
-            else
-            {
-                identity.AddClaim(new Claim(JwtClaimTypes.AuthenticationMethod, ClaimValues.AuthenticationMethodPwd));
-            }
+        //https://docs.microsoft.com/it-it/aspnet/core/security/authentication/mfa
+        if (user.TwoFactorEnabled)
+            identity.AddClaim(new Claim(JwtClaimTypes.AuthenticationMethod, ClaimValues.AuthenticationMethodMFA));
+        else
+            identity.AddClaim(new Claim(JwtClaimTypes.AuthenticationMethod, ClaimValues.AuthenticationMethodPwd));
 
-            return principal;         
-        }
+        return principal;
     }
 }

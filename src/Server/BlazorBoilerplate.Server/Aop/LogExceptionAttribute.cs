@@ -1,10 +1,9 @@
-﻿using AspectInjector.Broker;
-using System;
+﻿using System;
+using AspectInjector.Broker;
 
-namespace BlazorBoilerplate.Server.Aop
+namespace BlazorBoilerplate.Server.Aop;
+
+[Injection(typeof(LogExceptionAspect))]
+public class LogExceptionAttribute : Attribute
 {
-    [Injection(typeof(LogExceptionAspect))]
-    public class LogExceptionAttribute : Attribute
-    {
-    }
 }

@@ -1,84 +1,84 @@
-﻿using AspectInjector.Broker;
+﻿using System;
+using System.Reflection;
+using System.Threading.Tasks;
+using AspectInjector.Broker;
 using BlazorBoilerplate.Infrastructure.Server.Models;
 using BlazorBoilerplate.Server.Factories;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Reflection;
-using System.Threading.Tasks;
 
-namespace BlazorBoilerplate.Server.Aop
+namespace BlazorBoilerplate.Server.Aop;
+
+[Aspect(Scope.PerInstance, Factory = typeof(AopServicesFactory))]
+public class LogExceptionAspect
 {
-    [Aspect(Scope.PerInstance, Factory = typeof(AopServicesFactory))]
-    public class LogExceptionAspect
+    private static readonly MethodInfo _asyncHandler =
+        typeof(LogExceptionAspect).GetMethod(nameof(WrapAsync), BindingFlags.Instance | BindingFlags.NonPublic);
+
+    private static readonly MethodInfo _syncHandler =
+        typeof(LogExceptionAspect).GetMethod(nameof(WrapSync), BindingFlags.Instance | BindingFlags.NonPublic);
+
+    private static readonly Type _voidTaskResult = Type.GetType("System.Threading.Tasks.VoidTaskResult");
+    private readonly ILogger<LogExceptionAspect> _logger;
+
+    public LogExceptionAspect(ILogger<LogExceptionAspect> logger)
     {
-        private readonly ILogger<LogExceptionAspect> _logger;
-        private static readonly MethodInfo _asyncHandler = typeof(LogExceptionAspect).GetMethod(nameof(WrapAsync), BindingFlags.Instance | BindingFlags.NonPublic);
-        private static readonly MethodInfo _syncHandler = typeof(LogExceptionAspect).GetMethod(nameof(WrapSync), BindingFlags.Instance | BindingFlags.NonPublic);
-        private static readonly Type _voidTaskResult = Type.GetType("System.Threading.Tasks.VoidTaskResult");
+        _logger = logger;
+    }
 
-        public LogExceptionAspect(ILogger<LogExceptionAspect> logger)
+    [Advice(Kind.Around, Targets = Target.Public | Target.Method)]
+    public object Handle(
+        [Argument(Source.Target)] Func<object[], object> target,
+        [Argument(Source.Arguments)] object[] args,
+        [Argument(Source.Name)] string name,
+        [Argument(Source.ReturnType)] Type retType
+    )
+    {
+        if (typeof(Task).IsAssignableFrom(retType))
         {
-            _logger = logger;
+            var syncResultType = retType.IsConstructedGenericType ? retType.GenericTypeArguments[0] : _voidTaskResult;
+            var tgt = target;
+            return _asyncHandler.MakeGenericMethod(syncResultType).Invoke(this, new object[] { tgt, args, name });
         }
 
+        retType = retType == typeof(void) ? typeof(object) : retType;
+        return _syncHandler.MakeGenericMethod(retType).Invoke(this, new object[] { target, args, name });
+    }
 
-        [Advice(Kind.Around, Targets = Target.Public | Target.Method)]
-        public object Handle(
-            [Argument(Source.Target)] Func<object[], object> target,
-            [Argument(Source.Arguments)] object[] args,
-            [Argument(Source.Name)] string name,
-            [Argument(Source.ReturnType)] Type retType
-            )
+    private T WrapSync<T>(Func<object[], object> target, object[] args, string name)
+    {
+        try
         {
-            if (typeof(Task).IsAssignableFrom(retType))
-            {
-                var syncResultType = retType.IsConstructedGenericType ? retType.GenericTypeArguments[0] : _voidTaskResult;
-                var tgt = target;
-                return _asyncHandler.MakeGenericMethod(syncResultType).Invoke(this, new object[] { tgt, args, name });
-            }
-            else
-            {
-                retType = retType == typeof(void) ? typeof(object) : retType;
-                return _syncHandler.MakeGenericMethod(retType).Invoke(this, new object[] { target, args, name });
-            }
+            var result = (T)target(args);
+
+            return result;
         }
-
-        private T WrapSync<T>(Func<object[], object> target, object[] args, string name)
+        catch (Exception ex)
         {
-            try
-            {
-                var result = (T)target(args);
+            _logger.LogError($"{name}: {ex.GetBaseException().Message}");
 
-                return result;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"{name}: {ex.GetBaseException().Message}");
+            if (ex is DomainException)
+                throw;
 
-                if (ex is DomainException)
-                    throw;
-
-                return default;
-            }
+            return default;
         }
+    }
 
-        private async Task<T> WrapAsync<T>(Func<object[], object> target, object[] args, string name)
+    private async Task<T> WrapAsync<T>(Func<object[], object> target, object[] args, string name)
+    {
+        try
         {
-            try
-            {
-                var result = await ((Task<T>)target(args)).ConfigureAwait(false);
+            var result = await ((Task<T>)target(args)).ConfigureAwait(false);
 
-                return result;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"{name}: {ex.GetBaseException().Message}");
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"{name}: {ex.GetBaseException().Message}");
 
-                if (ex is DomainException)
-                    throw;
+            if (ex is DomainException)
+                throw;
 
-                return default;
-            }
+            return default;
         }
     }
 }

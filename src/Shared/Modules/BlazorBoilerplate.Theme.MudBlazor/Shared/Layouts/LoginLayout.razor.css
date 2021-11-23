@@ -5,10 +5,10 @@
     min-width: 400px;
 }
 
-    .login-body ::deep.mud-expansion-panels .mud-expand-panel-header {
-        flex-basis: 80%;
-    }
+.login-body ::deep.mud-expansion-panels .mud-expand-panel-header {
+    flex-basis: 80%;
+}
 
-    .login-body ::deep.mud-expansion-panels {
-        background-color: #f4f4f4 !important;
-    }
+.login-body ::deep.mud-expansion-panels {
+    background-color: #f4f4f4 !important;
+}

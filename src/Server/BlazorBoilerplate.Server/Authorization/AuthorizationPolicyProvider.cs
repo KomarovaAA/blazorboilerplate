@@ -1,36 +1,35 @@
-﻿using BlazorBoilerplate.Infrastructure.AuthorizationDefinitions;
+﻿using System.Threading.Tasks;
+using BlazorBoilerplate.Infrastructure.AuthorizationDefinitions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
-using System.Threading.Tasks;
 
-namespace BlazorBoilerplate.Server.Authorization
+namespace BlazorBoilerplate.Server.Authorization;
+
+public class AuthorizationPolicyProvider : SharedAuthorizationPolicyProvider
 {
-    public class AuthorizationPolicyProvider : SharedAuthorizationPolicyProvider
+    private readonly AuthorizationOptions _options;
+
+    public AuthorizationPolicyProvider(IOptions<AuthorizationOptions> options) : base(options)
     {
-        private readonly AuthorizationOptions _options;
+        _options = options.Value;
+    }
 
-        public AuthorizationPolicyProvider(IOptions<AuthorizationOptions> options) : base(options)
+    public override async Task<AuthorizationPolicy> GetPolicyAsync(string policyName)
+    {
+        // Check static policies first
+        var policy = await base.GetPolicyAsync(policyName);
+
+        if (policy == null)
         {
-            _options = options.Value;
+            policy = new AuthorizationPolicyBuilder()
+                .RequireAuthenticatedUser()
+                .AddRequirements(new PermissionRequirement(policyName))
+                .Build();
+
+            // Add policy to the AuthorizationOptions, so we don't have to re-create it each time
+            _options.AddPolicy(policyName, policy);
         }
 
-        public override async Task<AuthorizationPolicy> GetPolicyAsync(string policyName)
-        {
-            // Check static policies first
-            var policy = await base.GetPolicyAsync(policyName);
-
-            if (policy == null)
-            {
-                policy = new AuthorizationPolicyBuilder()
-                    .RequireAuthenticatedUser()
-                    .AddRequirements(new PermissionRequirement(policyName))
-                    .Build();
-
-                // Add policy to the AuthorizationOptions, so we don't have to re-create it each time
-                _options.AddPolicy(policyName, policy);
-            }
-
-            return policy;
-        }
+        return policy;
     }
 }

@@ -7,6 +7,8 @@ using System.Text;
 
 namespace BlazorBoilerplate.SourceGenerator
 {
+
+
     [Generator]
     public class AuditableGenerator : ISourceGenerator
     {
@@ -14,7 +16,6 @@ namespace BlazorBoilerplate.SourceGenerator
         {
             // Register a syntax receiver that will be created for each generation pass
             context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());
-
         }
 
         public void Execute(GeneratorExecutionContext context)
@@ -22,7 +23,9 @@ namespace BlazorBoilerplate.SourceGenerator
             if (!(context.SyntaxReceiver is SyntaxReceiver receiver))
                 return;
 
-            INamedTypeSymbol interfaceSymbol = context.Compilation.GetTypeByMetadataName("BlazorBoilerplate.Infrastructure.Storage.DataInterfaces.IAuditable");
+            INamedTypeSymbol interfaceSymbol =
+                context.Compilation.GetTypeByMetadataName(
+                    "BlazorBoilerplate.Infrastructure.Storage.DataInterfaces.IAuditable");
 
             foreach (var c in receiver.CandidateClasses)
             {
@@ -82,4 +85,6 @@ namespace {namespaceName}
             }
         }
     }
+
+
 }

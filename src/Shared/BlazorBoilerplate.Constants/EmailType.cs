@@ -1,4 +1,6 @@
-﻿namespace BlazorBoilerplate.Constants
+﻿using System;
+
+namespace BlazorBoilerplate.Constants
 {
     public enum EmailType
     {
