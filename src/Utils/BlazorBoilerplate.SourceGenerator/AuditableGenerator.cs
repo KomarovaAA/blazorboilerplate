@@ -14,6 +14,7 @@ namespace BlazorBoilerplate.SourceGenerator
         {
             // Register a syntax receiver that will be created for each generation pass
             context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());
+
         }
 
         public void Execute(GeneratorExecutionContext context)
