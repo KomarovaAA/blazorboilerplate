@@ -1,12 +1,7 @@
-﻿using System;
-using System.Buffers;
-using System.Collections;
-
-namespace BlazorBoilerplate.Constants
+﻿namespace BlazorBoilerplate.Constants
 {
     public enum EmailType
     {
-        
         
         Generic,
         Test,
