@@ -1,8 +1,7 @@
 ﻿using BlazorBoilerplate.Shared.Models;
 
-namespace BlazorBoilerplate.Theme.Material.Admin
+namespace BlazorBoilerplate.Theme.Material.Admin;
+
+public class Module : BaseModule
 {
-    public class Module : BaseModule
-    {
-    }
 }

@@ -220,15 +220,10 @@ namespace BlazorBoilerplate.Server.Middleware
         //    }
         //}
 
-        private static string ConvertToJSONString(object rawJSON)
-        {
-            return JsonConvert.SerializeObject(rawJSON, JSONSettings());
-        }
+        private static string ConvertToJSONString(object rawJSON) =>
+            JsonConvert.SerializeObject(rawJSON, JSONSettings());
 
-        private static bool IsSwagger(HttpContext context)
-        {
-            return context.Request.Path.StartsWithSegments("/swagger");
-        }
+        private static bool IsSwagger(HttpContext context) => context.Request.Path.StartsWithSegments("/swagger");
 
         private static JsonSerializerSettings JSONSettings()
         {
@@ -262,7 +257,7 @@ namespace BlazorBoilerplate.Server.Middleware
                 }
                 catch { }
             }
-
+            
             if (responseBody != null && responseBody.Length > 256)
                 responseBody = $"(Truncated to 200 chars) {responseBody.Substring(0, 200)}";
 
