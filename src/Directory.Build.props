@@ -10,7 +10,6 @@
         <PackageProjectUrl>https://blazorboilerplate.com/</PackageProjectUrl>
         <RepositoryType>git</RepositoryType>
         <RepositoryUrl>https://github.com/enkodellc/blazorboilerplate</RepositoryUrl>
-        
         <SolutionDir>$(MSBuildThisFileDirectory)</ SolutionDir>
         <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
     </PropertyGroup>
