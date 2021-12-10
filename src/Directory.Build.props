@@ -11,5 +11,7 @@
         <RepositoryUrl>https://github.com/enkodellc/blazorboilerplate</RepositoryUrl>
         <SolutionDir>$(MSBuildThisFileDirectory)</SolutionDir>
         <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
+        
+        
     </PropertyGroup>
 </Project>
